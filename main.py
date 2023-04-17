@@ -4,8 +4,10 @@ import pdfplumber
 from pathlib import Path
 import pyttsx3
 import json
+import codecs
 
-def pdf_to_mp3(start_page: int, file_path='test.pdf', language='en'):
+
+def pdf_to_mp3(start_page: int =0, file_path='test.pdf', language='en'):
 
     if Path(file_path).is_file() and Path(file_path).suffix == '.pdf':
 
@@ -16,6 +18,8 @@ def pdf_to_mp3(start_page: int, file_path='test.pdf', language='en'):
         with pdfplumber.PDF(open(file=file_path, mode='rb')) as pdf:
             pages = [page.extract_text()
                      for page in pdf.pages[start_page - 1:start_page]]
+
+        pages = pages[0][:-167] # только для книг скаченных с Alpina Digital.
 
         text = ''.join(pages)
         text = text.replace('\n', '')
@@ -30,7 +34,7 @@ def pdf_to_mp3(start_page: int, file_path='test.pdf', language='en'):
         # Set properties before adding
         # Sets speed percent
         # Can be more than 100
-        converter.setProperty('rate', 280)
+        converter.setProperty('rate', 300)
         # Set volume 0-1
         converter.setProperty('volume', 1)
         converter.setProperty(
@@ -52,6 +56,54 @@ def pdf_to_mp3(start_page: int, file_path='test.pdf', language='en'):
         # converter.save_to_file(text, '1.mp3')
 
         converter.runAndWait()
+
+    if Path(file_path).is_file() and Path(file_path).suffix == '.txt':
+        pages=[]
+
+        print(f'[+] Original file: {Path(file_path).name}')
+        print('[+] Processing...')
+
+
+        with open(file=file_path, newline='\r\n', encoding='utf-8', mode='r') as file:
+        # with  codecs.open(filename=file_path, mode='rb', encoding='utf-8') as file:
+            for i in file:
+                pages.append(i[:-2])
+        # pages = pages[0][:-167] # только для книг скаченных с Alpina Digital.
+
+
+        # Конвертация целого файла целеком в mp3.
+        # my_audio = gTTS(text=text, lang=language, slow=False)
+        # file_name = Path(file_path).stem
+        # my_audio.save(f'{file_name}.mp3')
+        # return f'[+] {file_name}.mp3 saved successfully!\n---Have a good day!---'
+
+        converter = pyttsx3.init()
+        # Set properties before adding
+        # Sets speed percent
+        # Can be more than 100
+        converter.setProperty('rate', 300)
+        # Set volume 0-1
+        converter.setProperty('volume', 1)
+        converter.setProperty(
+            'voice', 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\MSTTS_V110_ruRU_PavelM')
+
+        # Queue the entered text
+        # There will be a pause between
+        # each one like a pause in
+        # a sentence
+
+        # read text in page.
+        converter.say(pages)
+
+        # read custom text.
+        # converter.say("""
+        #                """)
+
+        # Convert text in page to mp3.
+        # converter.save_to_file(text, '1.mp3')
+
+        converter.runAndWait()
+
 
     else:
         return "The file doesn't exist, check the file path!"
